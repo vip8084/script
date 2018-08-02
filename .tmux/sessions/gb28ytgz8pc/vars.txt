@@ -6,7 +6,7 @@ declare -a BASH_ARGC='()'
 declare -a BASH_ARGV='()'
 declare -A BASH_CMDS='()'
 declare -- BASH_COMMAND="git add ."
-declare -a BASH_LINENO='([0]="20")'
+declare -a BASH_LINENO='([0]="24")'
 declare -ar BASH_REMATCH='()'
 declare -a BASH_SOURCE='([0]="/home/ubuntu/.bashrc")'
 declare -- BASH_SUBSHELL

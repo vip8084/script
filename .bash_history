@@ -14,3 +14,7 @@ git commit -m "initial commit"
 git add .
 git config --global user.email "vip8084@mail.ru"
 git config --global user.name "vip8084"
+git add .
+git commin -m "initial"
+git commit -m "initial"
+git push -u origin master

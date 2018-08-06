@@ -159,9 +159,10 @@
             fontWeight: "normal"
         },
         addNewInputRemoveInput: {
-            padding: "0 5px",
+            padding: "1px 5px 0 5px",
             width: "24px",
-            height: "24px"
+            height: "24px",
+            fontSize: "17px"
         },
         containerFooter: {
             margin: "0 10px",
@@ -188,9 +189,7 @@
             cursor: "pointer",
             color: "#ffffff",
             fontFamily: "Arial",
-            fontSize: "11px",
             fontWeight: "bold",
-            padding: "1px 5px",
             textDecoration: "none",
             textShadow: "0px 1px 0px #528009",
             marginRight: "3px",
@@ -206,15 +205,14 @@
             cursor: "pointer",
             color: "#ffffff",
             fontFamily: "Arial",
-            fontSize: "11px",
             fontWeight: "bold",
-            padding: "1px 5px",
             textDecoration: "none",
             textShadow: "0px 1px 0px #b23e35"
         },
         buttonSearchResetSearch: {
             padding: "5px",
-            borderRadius: "5px"
+            borderRadius: "5px",
+            fontSize: "12px"
         },
         containerButtons: {
             margin: "0 0 5px 0",
@@ -236,6 +234,40 @@
             width: "48px",
             textAlign: "center",
             fontSize: "1.2em"
+        },
+        controlWatchedButton: {
+            boxShadow: "0px 7px 7px -7px #3e7327",
+            background: "linear-gradient(to bottom, #95d177 5%, #70ad51 100%)",
+            backgroundColor:"#95d177",
+            borderRadius:"42px",
+            border:"2px solid #ffffff",
+            cursor:"pointer",
+            color:"#ffffff",
+            fontFamily:"Arial",
+            fontSize:"15px",
+            fontWeight:"bold",
+            padding:"2px 6px",
+            textDecoration:"none",
+            textShadow:"0px 1px 0px #5b8a3c",
+            marginLeft: "13px",
+            outline: "0"
+        },
+        controlToWatchButton:{
+            boxShadow: "0px 7px 7px -7px #b50b0b",
+            background: "linear-gradient(to bottom, #e6935c 5%, #ed3434 100%)",
+            backgroundColor:"#e6935c",
+            borderRadius:"42px",
+            border:"2px solid #ffffff",
+            cursor:"pointer",
+            color:"#ffffff",
+            fontFamily:"Arial",
+            fontSize:"15px",
+            fontWeight:"bold",
+            padding:"2px 6px",
+            textDecoration:"none",
+            textShadow:"0px 1px 0px #d40f0f",
+            marginLeft: "-3px",
+            outline: "0"
         }
     };
 
@@ -302,46 +334,36 @@
     </div>
 `;
 
-let controlButtons = () => `
-<button class='control-watched'>+</button>
-<button class='control-towatch'>+</button>
+    let controlButtons = () => `
+<button class='control-watched' style="display: none;">+</button>
+<button class='control-towatch' style="display: none;">+</button>
 `;
 
-//---------- Init -----------------------------
+//============= Init ================
 
     $( "body" ).prepend(controlPanel (totalCourses, totalWatchedCourses, totalCoursesToWatch, foundCourses)); //adding control panel
 
     controlPanelStyling(); //adding styles to control panel
 
-    getCoursesList();
+    getCoursesList(); //initialize courses list
 
     getCoursesToWatchListFromDB();
     getWatchedListFromDB();
-    
+
 
     addButtons();
 
-//------- TO DO -----------------------
+//=========== TO DO ===================
 /*
-    - set init correctly
+    - set connected and disconnected states
+    - add login and base creastion
     - add tab index
-    - finish updateFoundCounter()
-    - parse data into arrays
-    - set the header
-      - show all counters
-    - add buttons to add and remove courses
-      - realize function to update arrays
-      - add buttons functionality
+    - forward slash change (check forbidden symbols to write to db)
+    - добавить загрузку пока грузится эксперт
 
-      - forward slash change (check forbidden symbols to write to db)
-
-
-      -не перекрашивает в зеленый если уже в других списках
-      - не перекрашивает в зеленый если есть скобки в названии
-      -добавить загрузку пока грузится эксперт
 */
 
-//-------- Event Listeners ------------------
+//=========== Event Listeners =============
 
     $(".search").on("click", function(){
         search();
@@ -372,36 +394,46 @@ let controlButtons = () => `
         removeInputField($(this));
     });
 
+//------------- Show Control Buttons On Hover-------------------------
+    let timer;
 
-//XXXXXXXXXXXXXXXXX APPEARING BUTTON ON HOVER AND THEN LEAVE
     $("div.standard-block__flex ul").on("mouseenter", "li", function(){
-        //appearing buttons
+        $(this).find(".control-watched").css(controlPanelStyles.controlWatchedButton);
+        $(this).find(".control-towatch").css(controlPanelStyles.controlToWatchButton);
+
+        let controlBtns = $(this).find("button");
+       timer = setTimeout(function() {
+          controlBtns.fadeIn(300);
+    }, 200);
+
 
     }).on("mouseleave", "li", function(){
-        //buttons fading
+        let controlBtns = $(this).find("button");
+        controlBtns.fadeOut(500);
+        clearTimeout(timer);
     });
-//XXXXXXXXXXXXXXXXX
+//----------------------------------
 
     $("div.standard-block__flex > ul > li").on("click", ".control-watched", function(event){
         event.preventDefault();
         event.stopPropagation();
 
-        xx($(this));
-        //addToWatchedCoursesDB($(this));
+        workWithDBLists($(this));
     });
 
     $("div.standard-block__flex > ul > li").on("click", ".control-towatch", function(event){
         event.preventDefault();
         event.stopPropagation();
 
-        //addToCoursesToWatchDB($(this));
+        workWithDBLists($(this));
     });
 
+//================== Functions ========================
 
-//----------- Add to Watched List in DB -------------------
+//-------- Add to Watched List in DB ------------------
 function addToWatchedCoursesDB(caller){
 
-        //getting clean course text
+    //getting clean course text
         const itemText = caller.parent().clone().children().remove().end().text().trim();
 
         let doc = db.collection('watched').doc(itemText);
@@ -433,13 +465,10 @@ function addToWatchedCoursesDB(caller){
             // 2. failed because document does not exists on local storage ( offline )
             console.error("Error writing document: ", fail);
         });
-
-    }
-
-//----------- Add to CoursesToWatch List in DB -------------------
+}
+//-------- Add to CoursesToWatch List in DB -----------
 function addToCoursesToWatchDB(caller){
 
-    return new Promise(resolve => {
         //getting clean course text
         const itemText = caller.parent().clone().children().remove().end().text().trim();
 
@@ -472,93 +501,143 @@ function addToCoursesToWatchDB(caller){
             // 1. failed to read due to some reason such as permission denied ( online )
             // 2. failed because document does not exists on local storage ( offline )
             console.error("Error writing document: ", fail);
-        });
-
-        resolve();  //////////
-    });
+        });    
 }
-//---------------------------------------------------------------
-
-
-    function xx (caller){
+//-------- Add/Delete from DB Lists -------------------
+// rewrire the function with promises
+function workWithDBLists (caller){
 
         let parentItem = caller.parent().parent();
-
 
 
         if(caller.attr("class") === 'control-watched'){ //pressed control-watched btn
 
             if(parentItem.css('background-color') === "rgb(184, 255, 176)"){ // if bg is green then it's in watched already
 
-                //удалить из базы
-                //присвоить текст
-                //уменьuить счетчик
-                //удалить из массива
+                //delete from db
+                //reduce counter by 1
+                //delete from array
                 removeCourseFromDB(caller, watchedCourses, "watched");
+
+
+                //if search inputs not absent check our item and highlight it with yellow if it contains all words
+                if(searchWords.length !== 0){
+
+                    let date = parentItem.children().first().text().trim().toLowerCase();
+                    let text = caller.parent().clone().children().remove().end().text().trim().toLowerCase();
+                    let itemText = date + " - " + text;
+                    let isEvery = searchWords.every(item => itemText.includes(item.toLowerCase().trim()));
+
+                    if(isEvery) {
+
+                        setTimeout(function(){
+                            parentItem.css(setStyles(searchWords));
+                            foundCourses++;
+                            updateFoundCounter();
+                        }, 1000);
+                    }
+                }
 
             }else if(parentItem.css('background-color') === "rgb(255, 201, 163)"){ // if bg is red then it's in towatch already
 
-                //удалить из ту вотч
-                //добавить в вотчед
-                // уменьщить счетчик ту вотч
-                // увеличить счетчик вотчед
-                // удалить из массива ту вотч?
-                // добавить в массив вотчед?
+                //delete from towatch
+                //reduce counter towatch
+                //delete from array towatch
+                //add to watched
+                //increase counter watched
+                //add to array watched
+
+                removeCourseFromDB(caller, coursesToWatch, "towatch");
+                addToWatchedCoursesDB(caller);
 
 
             }else if(parentItem.css('background-color') === "rgb(255, 239, 133)"){ //it's yellow, highlighted by search
-             //добавить в вотчед
-             // увеличить счетчик вотчед
 
-
-                    //addToWatchedCoursesDB(caller);
-
-                functionOne(caller).done( function() {
-                let inputListValues = $(".search-input-field")
-                    .map(function(){return $(this).val();}).get();
-
-
-                    if(inputListValues.length !== 0){
-
-                        search();
-                    }
-
-                });
-
-
-
-                //запустить поиск чтобы обновить счетчик поиска
-
-
-            }else if(parentItem.css('background-color') === "rgba(0, 0, 0, 0)"){ //Значит прозрачный цвет
-
+                //add to watched
+                //increase counter watched
+                //update search counter
 
                 addToWatchedCoursesDB(caller);
-                // добавить в вотчед лист
-                // увеличить счетчик
-                // добавить в массив
 
+
+                foundCourses--;
+                updateFoundCounter();
+
+
+            }else if(parentItem.css('background-color') === "rgba(0, 0, 0, 0)"){ // then it has no bg
+
+                // add to watched
+                // increase counter
+                // add to array
+
+                addToWatchedCoursesDB(caller);
             }
         }
-        //XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
         else{ // pressed control-towatch btn
 
+            if(parentItem.css('background-color') === "rgb(255, 201, 163)"){ // if bg is red then it's in towatch already
+
+                //delete from db
+                //reduce count by 1
+                //delete from array
+
+                removeCourseFromDB(caller, coursesToWatch, "towatch");
+
+
+                //if search inputs not absent check our item and highlight it with yellow if it contains all words
+                if(searchWords.length !== 0){
+
+                    let date = parentItem.children().first().text().trim().toLowerCase();
+                    let text = caller.parent().clone().children().remove().end().text().trim().toLowerCase();
+                    let itemText = date + " - " + text;
+                    let isEvery = searchWords.every(item => itemText.includes(item.toLowerCase().trim()));
+
+                    if(isEvery) {
+
+                        setTimeout(function(){
+                            parentItem.css(setStyles(searchWords));
+                            foundCourses++;
+                            updateFoundCounter();
+                        }, 1000);
+                    }
+                }
+
+            }else if(parentItem.css('background-color') === "rgb(184, 255, 176)"){ // if bg is green then it's in watched already
+
+                //delete from watched
+                //reduce counter watched
+                //delete from array watched
+                //add to towatch
+                //increase counter towatch
+                //add to array towatch
+
+                removeCourseFromDB(caller, watchedCourses, "watched");
+                addToCoursesToWatchDB(caller);
+
+
+            }else if(parentItem.css('background-color') === "rgb(255, 239, 133)"){ //it's yellow, highlighted by search
+
+                //add to watched
+                //increase counter watched
+                //update search counter
+                addToCoursesToWatchDB(caller);
+
+
+                foundCourses--;
+                updateFoundCounter();
+
+
+            }else if(parentItem.css('background-color') === "rgba(0, 0, 0, 0)"){ // then it has no bg
+
+                // add to watched
+                // increase counter
+                // add to array
+
+                addToCoursesToWatchDB(caller);
+            }
         }
-    }
-//-------------------------------------------
-
-    var functionOne = function(caller) {
-
-    var r = $.Deferred();
-
-    addToWatchedCoursesDB(caller);
-
-    return r;
-
-};
-
-
-//-------- Remove Course From DB -------------------
+}
+//-------- Remove Course From DB ----------------------
 function removeCourseFromDB(caller, coursesArray, dbList){
 
         //getting clean course text
@@ -598,8 +677,8 @@ function removeCourseFromDB(caller, coursesArray, dbList){
             });
         }
     }
-//-------- Get Courses List --------------------------
- function getCoursesList(){
+//-------- Get Courses List ---------------------------
+function getCoursesList(){
 
     let datesOfCourses = [];
 
@@ -621,7 +700,7 @@ function removeCourseFromDB(caller, coursesArray, dbList){
         console.log("Error in getting list of courses for search");
     }
 }
-//-------- Adding Input Field ------------------------
+//-------- Adding Input Field -------------------------
 function addInputField(){
 
     let newInput = () => `
@@ -635,7 +714,7 @@ function addInputField(){
     let lastChild = $('.input-container').children().last();
     $(lastChild).after(newInput);
 }
-//-------- Get Watched Courses from DB----------------
+//-------- Get Watched Courses from DB-----------------
 function getWatchedListFromDB(){
 
     db.collection("watched").get().then(function(querySnapshot) {
@@ -652,9 +731,8 @@ function getWatchedListFromDB(){
         highlight(watchedCourses);
         console.log(watchedCourses);
   });
-
 }
-//-------- Get Courses to Watch from DB---------------
+//-------- Get Courses to Watch from DB----------------
 function getCoursesToWatchListFromDB(){
 
     db.collection("towatch").get().then(function(querySnapshot) {
@@ -671,7 +749,7 @@ function getCoursesToWatchListFromDB(){
         console.log(coursesToWatch);
   });
 }
-//-------- Removing Input Field ----------------------
+//-------- Removing Input Field -----------------------
 function removeInputField(caller){
 
         const itemParent = caller.parent();
@@ -720,7 +798,7 @@ function removeInputField(caller){
         controlPanelStyling();
         search();
     };
-//-------- Set Styles for Highlighting ---------------
+//-------- Set Styles for Highlighting ----------------
 function setStyles (data) {
 
     let styles = {
@@ -742,7 +820,7 @@ function setStyles (data) {
 
     return styles;
 }
-//-------- Set Styles to Controlpanel-----------------
+//-------- Set Styles to Controlpanel------------------
 function controlPanelStyling () {
 
     $('.container-wrapper *').css(controlPanelStyles.allElements);
@@ -785,6 +863,31 @@ function controlPanelStyling () {
          }
      );
 
+//---------- control-watched hover ------------------
+    $("a").on({
+        mouseenter: function () {
+            $(this).css({
+                background: "linear-gradient(to bottom, #70ad51 5%, #95d177 100%)",
+                backgroundColor: "#70ad51"
+            });
+        },
+        mouseleave:function () {
+            $(this).css(controlPanelStyles.controlWatchedButton)
+        }
+    },'.control-watched');
+
+//---------- control-towatch hover ------------------
+    $("a").on({
+        mouseenter: function () {
+            $(this).css({
+                background: "linear-gradient(to bottom, #ed3434 5%, #e6935c 100%)",
+                backgroundColor: "#ed3434"
+            });
+        },
+        mouseleave:function () {
+            $(this).css(controlPanelStyles.controlToWatchButton)
+        }
+    },'.control-towatch');
 
     $('.remove-input, .reset-search').hover(
          function(){
@@ -832,10 +935,42 @@ function controlPanelStyling () {
             top: "0"
        });
     });
+
+//------------ control-watched :active -------------
+    $("a").on({
+        mousedown: function () {
+            $(this).css({
+            position: "relative",
+            top: "1px"
+        });
+        },
+        mouseup:function () {
+            $(this).css({
+           position: "inline-block",
+            top: "0"
+       });
+        }
+    },'.control-watched');
+
+//------------ control-towatch :active -------------
+   $("a").on({
+        mousedown: function () {
+            $(this).css({
+            position: "relative",
+            top: "1px"
+        });
+        },
+        mouseup:function () {
+            $(this).css({
+           position: "inline-block",
+            top: "0"
+       });
+        }
+    },'.control-towatch');
 //----------------------------------
 
 }
-//-------- Highlight Courses -------------------------
+//-------- Highlight Courses --------------------------
 function highlight (data) {
 
     let styles = setStyles(data);
@@ -882,11 +1017,11 @@ function highlight (data) {
         }));
     }
 }
-//-------- Update Found Counter ----------------------
+//-------- Update Found Counter -----------------------
 function updateFoundCounter(){
     $(".found-courses-counter").text(foundCourses);
 }
-//-------- Search ------------------------------------
+//-------- Search -------------------------------------
 function search (){
 
     resetSearch();
@@ -919,7 +1054,7 @@ function search (){
     highlight(searchWords);
 
 }
-//-------- Reset Search -------------
+//-------- Reset Search -------------------------------
 function resetSearch(){
 
     $.each(coursesItems, (function(index, item){
@@ -957,12 +1092,12 @@ function resetSearch(){
 
     updateFoundCounter();
 }
-//-------- Reset Buttons -------------
+//-------- Add Control Buttons ------------------------
 function addButtons(){
         $.each (coursesItems, function (index, item) {
             let lastChild = $(this).children().last();
             lastChild.append(controlButtons);
         });
     }
-//-----------------------------------
+//-----------------------------------------------------
 })();
